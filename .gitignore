@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+*.db
+
+# Node
+node_modules/
+dist/
+
+# Vite / React build
+frontend/.vite/
+frontend/node_modules/
+
+# Environment files
+.env
+*.env
+venv/
