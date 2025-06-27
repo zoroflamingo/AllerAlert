@@ -7,7 +7,7 @@ class Dish(Base):
     __tablename__ = "dishes"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
+    name = Column(String, nullable=False, unique=True)
     country = Column(String)
 
     allergens = relationship(
@@ -16,7 +16,7 @@ class Dish(Base):
 
 
 class AllergenLikelihood(Base):
-    __tablename__ = "allergen_likelihoods"  # plural recommended
+    __tablename__ = "allergen_likelihoods"
 
     id = Column(Integer, primary_key=True, index=True)
     dish_id = Column(Integer, ForeignKey("dishes.id"), nullable=False, index=True)
