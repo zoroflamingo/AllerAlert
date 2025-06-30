@@ -1,7 +1,10 @@
 from fastapi import FastAPI
 from .routers import dishes_router, allergens_router
+from app.database import Base, engine
 
 app = FastAPI()
+
+Base.metadata.create_all(bind=engine)
 
 
 @app.get("/")
