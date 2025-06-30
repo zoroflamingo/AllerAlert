@@ -1,18 +1,4 @@
 from pydantic import BaseModel, ConfigDict
-from typing import List
-
-
-class DishBase(BaseModel):
-    """Base dish schema."""
-
-    name: str
-    country: str
-
-
-class DishCreate(DishBase):
-    """Schema for creating a new dish."""
-
-    pass
 
 
 class AllergenLikelihoodBase(BaseModel):
@@ -34,15 +20,6 @@ class AllergenLikelihoodNested(BaseModel):
 
     allergen: str
     likelihood: int
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class DishRead(DishBase):
-    """Schema for reading a dish."""
-
-    id: int
-    allergens: List[AllergenLikelihoodNested] = []
 
     model_config = ConfigDict(from_attributes=True)
 

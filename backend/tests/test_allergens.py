@@ -27,7 +27,42 @@ def test_create_duplicate_allergen(client, test_dish):
 
     response2 = client.post("/allergens", json=allergen)
     assert response2.status_code == 400
-    assert response2.json()["detail"] == "Allergen likelihood entry already exists"
+    assert (
+        response2.json()["detail"]
+        == "Allergen likelihood entry already exists for this dish"
+    )
+
+
+def test_get_all_allergenes(client, test_dish):
+    allergen1 = {
+        "dish_id": test_dish["id"],
+        "allergen": "Test allergen1",
+        "likelihood": 60,
+    }
+    allergen2 = {
+        "dish_id": test_dish["id"],
+        "allergen": "Test allergen2",
+        "likelihood": 70,
+    }
+
+    response1 = client.post("/allergens", json=allergen1)
+    assert response1.status_code == 201
+    response2 = client.post("/allergens", json=allergen2)
+    assert response2.status_code == 201
+
+    response3 = client.get("/allergens")
+    assert response3.status_code == 200
+    data = response3.json()
+
+    assert any(
+        a["allergen"] == "Test allergen1" and a["likelihood"] == 60 for a in data
+    )
+    assert any(
+        a["allergen"] == "Test allergen2" and a["likelihood"] == 70 for a in data
+    )
+    for allergen in data:
+        assert isinstance(allergen["id"], int)
+        assert allergen["dish_id"] == test_dish["id"]
 
 
 def test_get_allergen(client, test_dish):
