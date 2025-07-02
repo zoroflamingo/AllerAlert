@@ -1,6 +1,5 @@
 from fastapi import FastAPI
-from app.routers.dish import dishes_router
-from app.routers.allergen import allergens_router
+from app.routers import dish, allergen
 from app.database import Base, engine
 
 app = FastAPI()
@@ -13,5 +12,5 @@ def root():
     return {"message": "API is up and running"}
 
 
-app.include_router(dishes_router)
-app.include_router(allergens_router)
+app.include_router(dish.router)
+app.include_router(allergen.router)

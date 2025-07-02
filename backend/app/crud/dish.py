@@ -1,4 +1,5 @@
 from app.models.dish import Dish
+from app.models.allergen import AllergenLikelihood
 from app.schemas.dish import DishCreate
 from sqlalchemy import select
 from typing import Optional
@@ -33,8 +34,17 @@ def get_all_dishes(db: Session) -> list[Dish]:
 
 
 def search_dish(db: Session, query: str) -> list[Dish]:
+    """Searches for dishes by a query"""
     dishes = db.execute(select(Dish).where(Dish.name.ilike(f"%{query}%")))
     return list(dishes.scalars().all())
+
+
+def get_dish_summary(db: Session, dish_id: int) -> Optional[list[AllergenLikelihood]]:
+    """Retrieve a list of dish allergens"""
+    dish = db.get(Dish, dish_id)
+    if dish is None:
+        return None
+    return dish.allergens
 
 
 def get_dish(db: Session, dish_id: int) -> Optional[Dish]:

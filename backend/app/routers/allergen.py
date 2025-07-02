@@ -9,15 +9,15 @@ from app.crud.allergen import (
     get_allergen_likelihood,
     delete_allergen_likelihood,
     get_all_allergen_likelihood,
+    get_allergen_likelihoods_by_dish,
 )
 from sqlalchemy.orm import Session
 
 
-dishes_router = APIRouter(prefix="/dishes", tags=["dishes"])
-allergens_router = APIRouter(prefix="/allergens", tags=["allergens"])
+router = APIRouter(prefix="/allergens", tags=["allergens"])
 
 
-@allergens_router.post(
+@router.post(
     "/",
     response_model=AllergenLikelihoodRead,
     status_code=status.HTTP_201_CREATED,
@@ -39,7 +39,7 @@ def create_allergen_likelihood_endpoint(
     return new_allergen
 
 
-@allergens_router.get(
+@router.get(
     "/",
     response_model=list[AllergenLikelihoodRead],
     summary="Get all allergen likelihood instances",
@@ -54,8 +54,23 @@ def get_all_allergen_likelihood_endpoint(
     ]
 
 
-@allergens_router.get(
-    "/{allergen_id}",
+@router.get(
+    "/by-dish/{dish_id}",
+    response_model=list[AllergenLikelihoodRead],
+    summary="Get all allergen likelihood instances by dish id",
+    description="Retrieves all allergen likelihood instances by dish id",
+)
+def get_allergen_likelihoods_by_dish_endpoint(
+    dish_id: int, db: Session = Depends(get_db)
+) -> list[AllergenLikelihoodRead]:
+    allergens_likelihoods = get_allergen_likelihoods_by_dish(db, dish_id)
+    return [
+        AllergenLikelihoodRead.model_validate(entry) for entry in allergens_likelihoods
+    ]
+
+
+@router.get(
+    "/id/{allergen_id}",
     response_model=AllergenLikelihoodRead,
     summary="Get an allergen likelihood entry",
     description="Retrieves a allergen likelihood entry by its ID",
@@ -65,12 +80,14 @@ def get_allergen_likelihood_endpoint(
 ) -> AllergenLikelihoodRead:
     """Endpoint to get allergen likelihood entry info by ID. Returns 404 if not found."""
     allergen = get_allergen_likelihood(db, allergen_id)
+    print("Returned allergen from DB:", allergen)
+    print("Type:", type(allergen))
     if not allergen:
         raise HTTPException(status_code=404, detail="Allergen not found")
     return allergen
 
 
-@allergens_router.delete(
+@router.delete(
     "/{allergen_id}",
     status_code=204,
     summary="Deletes an allergen likelihood entry",

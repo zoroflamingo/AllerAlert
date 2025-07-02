@@ -65,6 +65,28 @@ def test_search_dish(client):
     )
 
 
+def test_get_dish_summary(client):
+    dish = {"name": "Test dish", "country": "Testland"}
+
+    response = client.post("/dishes", json=dish)
+    assert response.status_code == 201
+    dish_data = response.json()
+
+    allergen1 = {"dish_id": dish_data["id"], "allergen": "Nuts", "likelihood": 60}
+    allergen2 = {"dish_id": dish_data["id"], "allergen": "Gluten", "likelihood": 80}
+    response2 = client.post("/allergens", json=allergen1)
+    assert response2.status_code == 201
+    response3 = client.post("/allergens", json=allergen2)
+    assert response3.status_code == 201
+
+    response4 = client.get(f"/dishes/summary?dish_id={dish_data['id']}")
+    assert response4.status_code == 200
+    summary = response4.json()
+
+    assert any(d["allergen"] == "Nuts" and d["likelihood"] == 60 for d in summary)
+    assert any(d["allergen"] == "Gluten" and d["likelihood"] == 80 for d in summary)
+
+
 def test_get_dish(client):
     dish = {"name": "Test dish", "country": "Testland"}
 

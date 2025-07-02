@@ -3,6 +3,7 @@ from app.schemas.dish import (
     DishCreate,
     DishRead,
 )
+from app.schemas.allergen import AllergenLikelihoodNested
 from app.database import get_db
 from app.crud.dish import (
     create_dish,
@@ -10,15 +11,15 @@ from app.crud.dish import (
     delete_dish,
     search_dish,
     get_all_dishes,
+    get_dish_summary,
 )
 from sqlalchemy.orm import Session
+from app.constants import dish_not_found
+
+router = APIRouter(prefix="/dishes", tags=["dishes"])
 
 
-dishes_router = APIRouter(prefix="/dishes", tags=["dishes"])
-allergens_router = APIRouter(prefix="/allergens", tags=["allergens"])
-
-
-@dishes_router.post(
+@router.post(
     "/",
     response_model=DishRead,
     status_code=status.HTTP_201_CREATED,
@@ -33,7 +34,7 @@ def create_dish_endpoint(dish: DishCreate, db: Session = Depends(get_db)) -> Dis
     return new_dish
 
 
-@dishes_router.get(
+@router.get(
     "/",
     response_model=list[DishRead],
     summary="Get all dishes",
@@ -44,7 +45,7 @@ def get_all_dishes_endpoint(db: Session = Depends(get_db)) -> list[DishRead]:
     return [DishRead.model_validate(dish) for dish in dishes]
 
 
-@dishes_router.get(
+@router.get(
     "/search",
     response_model=list[DishRead],
     summary="Searches for dishes",
@@ -55,7 +56,22 @@ def search_dish_endpoint(query: str, db: Session = Depends(get_db)) -> list[Dish
     return [DishRead.model_validate(dish) for dish in dishes]
 
 
-@dishes_router.get(
+@router.get(
+    "/summary",
+    response_model=list[AllergenLikelihoodNested],
+    summary="Get dish summary",
+    description="Retrieve a list of dish allergens",
+)
+def get_dish_summary_endpoint(
+    dish_id: int, db: Session = Depends(get_db)
+) -> list[AllergenLikelihoodNested]:
+    allergens = get_dish_summary(db, dish_id)
+    if allergens is None:
+        raise HTTPException(status_code=404, detail=dish_not_found)
+    return [AllergenLikelihoodNested.model_validate(allergen) for allergen in allergens]
+
+
+@router.get(
     "/{dish_id}",
     response_model=DishRead,
     summary="Get a dish",
@@ -65,11 +81,11 @@ def get_dish_endpoint(dish_id: int, db: Session = Depends(get_db)) -> DishRead:
     """Endpoint to retrieve a dish by ID. Returns 404 if not found."""
     dish = get_dish(db, dish_id)
     if not dish:
-        raise HTTPException(status_code=404, detail="Dish not found")
+        raise HTTPException(status_code=404, detail=dish_not_found)
     return dish
 
 
-@dishes_router.delete(
+@router.delete(
     "/{dish_id}",
     status_code=204,
     summary="Delete a dish",
@@ -79,5 +95,5 @@ def delete_dish_endpoint(dish_id: int, db: Session = Depends(get_db)) -> Respons
     """Endpoint to delete a dish by ID. Returns 204 or 404."""
     response = delete_dish(db, dish_id)
     if not response:
-        raise HTTPException(status_code=404, detail="Dish not found")
+        raise HTTPException(status_code=404, detail=dish_not_found)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -49,6 +49,15 @@ def get_all_allergen_likelihood(db: Session) -> list[AllergenLikelihood]:
     return list(allergens.scalars().all())
 
 
+def get_allergen_likelihoods_by_dish(
+    db: Session, dish_id: int
+) -> list[AllergenLikelihood]:
+    allergens = db.execute(
+        select(AllergenLikelihood).where(AllergenLikelihood.dish_id == dish_id)
+    )
+    return list(allergens.scalars().all())
+
+
 def get_allergen_likelihood(
     db: Session, allergen_id: int
 ) -> Optional[AllergenLikelihood]:
